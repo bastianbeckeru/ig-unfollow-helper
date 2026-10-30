@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <title>IG Unfollow Helper</title>
+  <defs>
+    <!-- Same gradient as the side panel logo (CSS linear-gradient 225deg) -->
+    <linearGradient id="g" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#feb447" />
+      <stop offset="0.5" stop-color="#ff4d7e" />
+      <stop offset="1" stop-color="#8a3ffc" />
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="30" fill="url(#g)" />
+  <!-- Lucide user-minus -->
+  <g transform="translate(26 26) scale(3.1667)" fill="none" stroke="#fff" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <line x1="22" x2="16" y1="11" y2="11" />
+  </g>
+</svg>

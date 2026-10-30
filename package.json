@@ -1,0 +1,32 @@
+{
+  "name": "ig-unfollow-helper",
+  "version": "0.1.0",
+  "description": "Chrome extension that helps you review and manually unfollow Instagram accounts that don't follow you back.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt build",
+    "zip": "wxt zip",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "postinstall": "wxt prepare",
+    "lint": "biome check .",
+    "lint:write": "biome check --write ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.15",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5",
+    "wxt": "^0.21.5"
+  },
+  "dependencies": {
+    "@fontsource-variable/geist": "^5.3.0",
+    "@fontsource-variable/geist-mono": "^5.3.0",
+    "@fontsource-variable/inter": "^5.3.0",
+    "lucide": "^1.63.0"
+  },
+  "packageManager": "bun@1.4.3"
+}

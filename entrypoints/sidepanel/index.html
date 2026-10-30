@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IG Unfollow Helper</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <!-- Main: header, sync card, tabs, list, action bar -->
+    <div id="main" class="screen">
+      <header class="header">
+        <div class="topbar">
+          <div class="logo"><i data-icon="user-minus"></i></div>
+          <h1>Unfollow Helper</h1>
+          <button type="button" id="sync" class="icon-btn" title="Sync"><i data-icon="refresh-cw"></i></button>
+          <button type="button" id="open-settings" class="icon-btn" title="Settings"><i data-icon="settings"></i></button>
+        </div>
+        <div id="banner" class="banner-wrap" hidden></div>
+        <div id="hero" class="hero">
+          <div class="hero-row">
+            <span id="big-number" class="big-number"></span>
+            <span class="big-label">don't follow you back</span>
+          </div>
+          <p id="sub-stats" class="sub-stats"></p>
+        </div>
+      </header>
+
+
+      <div id="first-run" class="first-run" hidden>
+        <div class="empty-icon"><i data-icon="users"></i></div>
+        <h2>Find who doesn't follow you back</h2>
+        <p>Open instagram.com, log in, then sync.</p>
+        <button type="button" id="sync-now" class="btn primary"><i data-icon="refresh-cw"></i> Sync now</button>
+      </div>
+
+      <div id="content" class="content">
+        <div class="tabs-wrap">
+          <nav class="tabs">
+            <button type="button" data-view="review">To review <span class="count" id="count-review"></span></button>
+            <button type="button" data-view="kept">Kept <span class="count" id="count-kept"></span></button>
+            <button type="button" data-view="done">Unfollowed <span class="count" id="count-done"></span></button>
+          </nav>
+        </div>
+
+        <div class="toolbar">
+          <label class="search" aria-label="Search username">
+            <i data-icon="search"></i>
+            <input id="search" type="search" placeholder="Search username" autocomplete="off" />
+          </label>
+          <div id="filter-wrap" class="filter">
+            <button type="button" id="filter" class="filter-btn" title="Filters"><i data-icon="list-filter"></i></button>
+            <div id="filter-menu" class="popover" hidden>
+              <p class="popover-title">Show in list</p>
+              <button type="button" class="option" data-filter="hideVerified">
+                <span class="option-icon"><i data-icon="badge-check"></i></span>
+                <span class="option-text"><strong>Verified</strong><small>Brands and creators</small></span>
+                <i data-icon="check" class="check"></i>
+              </button>
+              <button type="button" class="option" data-filter="hidePrivate">
+                <span class="option-icon"><i data-icon="lock"></i></span>
+                <span class="option-text"><strong>Private</strong><small>Accounts you can't preview</small></span>
+                <i data-icon="check" class="check"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <p id="caption" class="caption" hidden></p>
+
+        <div class="list-wrap">
+          <ul id="list" class="list"></ul>
+          <p id="empty" class="empty" hidden></p>
+        </div>
+      </div>
+
+      <footer id="action-bar" class="action-bar">
+        <div id="rate" class="rate">
+          <span id="ring" class="ring"></span>
+          <span id="rate-text"></span>
+        </div>
+        <button type="button" id="hint-primary" class="hint"><span></span><kbd></kbd></button>
+        <button type="button" id="hint-secondary" class="hint"><span>Unfollow</span><kbd>⌫</kbd></button>
+      </footer>
+    </div>
+
+    <!-- Settings -->
+    <div id="settings" class="screen" hidden>
+      <header class="subbar">
+        <button type="button" class="icon-btn back" data-back="main" title="Back"><i data-icon="arrow-left"></i></button>
+        <h1>Settings</h1>
+      </header>
+      <form id="settings-form" class="settings-body">
+        <section class="group">
+          <div class="group-header">
+            <h3>Unfollow limits</h3>
+            <p>Soft limits. When you reach one, unfollowing asks before going on.</p>
+          </div>
+          <div class="group-card">
+            <label class="field">Per hour <span class="input"><input name="hourlyLimit" type="number" min="1" /></span></label>
+            <label class="field">Per 24 hours <span class="input"><input name="dailyLimit" type="number" min="1" /></span></label>
+          </div>
+        </section>
+        <section class="group">
+          <div class="group-header">
+            <h3>Sync pacing</h3>
+            <p>Slower is safer. Instagram may lock you out if you go too fast.</p>
+          </div>
+          <div class="group-card">
+            <label class="field">Min pause between pages <span class="input"><input name="minDelayMs" data-scale="1000" type="number" min="1" step="0.5" /><em>s</em></span></label>
+            <label class="field">Max pause between pages <span class="input"><input name="maxDelayMs" data-scale="1000" type="number" min="1" step="0.5" /><em>s</em></span></label>
+            <label class="field">Max accounts per run <span class="input"><input name="maxAccountsPerSync" type="number" min="50" /></span></label>
+            <label class="field">Wait between full syncs <span class="input"><input name="syncCooldownHours" type="number" min="0" /><em>h</em></span></label>
+            <label class="field">Lock after Instagram pushes back <span class="input"><input name="blockLockoutHours" type="number" min="1" /><em>h</em></span></label>
+          </div>
+        </section>
+        <section class="group">
+          <div class="group-header"><h3>Debug</h3></div>
+          <div class="group-card">
+            <button type="button" id="open-console" class="link-row">
+              <i data-icon="terminal"></i>
+              <span>Activity log</span>
+              <span id="log-count" class="link-count"></span>
+              <i data-icon="chevron-right" class="chevron"></i>
+            </button>
+          </div>
+        </section>
+        <button type="button" id="clear" class="btn danger wide"><i data-icon="trash-2"></i> Clear all data</button>
+      </form>
+    </div>
+
+    <!-- Activity log -->
+    <div id="console" class="screen" hidden>
+      <header class="subbar">
+        <button type="button" class="icon-btn back" data-back="settings" title="Back"><i data-icon="arrow-left"></i></button>
+        <h1>Activity log</h1>
+        <button type="button" id="log-copy" class="icon-btn" title="Copy all"><i data-icon="copy"></i></button>
+        <button type="button" id="log-clear" class="icon-btn" title="Clear"><i data-icon="trash-2"></i></button>
+      </header>
+      <ol id="log" class="log"></ol>
+      <p id="log-empty" class="empty" hidden>Nothing logged yet. Sync, unfollow, or unfollow someone on Instagram.</p>
+      <footer class="log-footer"><span id="log-status">Last 300 entries · tokens are redacted</span></footer>
+    </div>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
