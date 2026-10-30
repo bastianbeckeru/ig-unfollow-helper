@@ -13,14 +13,14 @@
         <div class="topbar">
           <div class="logo"><i data-icon="user-minus"></i></div>
           <h1>Unfollow Helper</h1>
-          <button type="button" id="sync" class="icon-btn" title="Sync"><i data-icon="refresh-cw"></i></button>
-          <button type="button" id="open-settings" class="icon-btn" title="Settings"><i data-icon="settings"></i></button>
+          <button type="button" id="sync" class="icon-btn" title="Sync" data-i18n-title="header.sync"><i data-icon="refresh-cw"></i></button>
+          <button type="button" id="open-settings" class="icon-btn" title="Settings" data-i18n-title="header.settings"><i data-icon="settings"></i></button>
         </div>
         <div id="banner" class="banner-wrap" hidden></div>
         <div id="hero" class="hero">
           <div class="hero-row">
             <span id="big-number" class="big-number"></span>
-            <span class="big-label">don't follow you back</span>
+            <span class="big-label" data-i18n="hero.label">don't follow you back</span>
           </div>
           <p id="sub-stats" class="sub-stats"></p>
         </div>
@@ -29,37 +29,37 @@
 
       <div id="first-run" class="first-run" hidden>
         <div class="empty-icon"><i data-icon="users"></i></div>
-        <h2>Find who doesn't follow you back</h2>
-        <p>Open instagram.com, log in, then sync.</p>
-        <button type="button" id="sync-now" class="btn primary"><i data-icon="refresh-cw"></i> Sync now</button>
+        <h2 data-i18n="firstRun.title">Find who doesn't follow you back</h2>
+        <p data-i18n="firstRun.sub">Open instagram.com, log in, then sync.</p>
+        <button type="button" id="sync-now" class="btn primary"><i data-icon="refresh-cw"></i> <span data-i18n="firstRun.sync">Sync now</span></button>
       </div>
 
       <div id="content" class="content">
         <div class="tabs-wrap">
           <nav class="tabs">
-            <button type="button" data-view="review">To review <span class="count" id="count-review"></span></button>
-            <button type="button" data-view="kept">Kept <span class="count" id="count-kept"></span></button>
-            <button type="button" data-view="done">Unfollowed <span class="count" id="count-done"></span></button>
+            <button type="button" data-view="review"><span data-i18n="tab.review">To review</span> <span class="count" id="count-review"></span></button>
+            <button type="button" data-view="kept"><span data-i18n="tab.kept">Kept</span> <span class="count" id="count-kept"></span></button>
+            <button type="button" data-view="done"><span data-i18n="tab.done">Unfollowed</span> <span class="count" id="count-done"></span></button>
           </nav>
         </div>
 
         <div class="toolbar">
-          <label class="search" aria-label="Search username">
+          <label class="search" aria-label="Search username" data-i18n-aria-label="search.label">
             <i data-icon="search"></i>
             <input id="search" type="search" placeholder="Search username" autocomplete="off" />
           </label>
           <div id="filter-wrap" class="filter">
-            <button type="button" id="filter" class="filter-btn" title="Filters"><i data-icon="list-filter"></i></button>
+            <button type="button" id="filter" class="filter-btn" title="Filters" data-i18n-title="filter.title"><i data-icon="list-filter"></i></button>
             <div id="filter-menu" class="popover" hidden>
-              <p class="popover-title">Show in list</p>
+              <p class="popover-title" data-i18n="filter.heading">Show in list</p>
               <button type="button" class="option" data-filter="hideVerified">
                 <span class="option-icon"><i data-icon="badge-check"></i></span>
-                <span class="option-text"><strong>Verified</strong><small>Brands and creators</small></span>
+                <span class="option-text"><strong data-i18n="filter.verified">Verified</strong><small data-i18n="filter.verifiedSub">Brands and creators</small></span>
                 <i data-icon="check" class="check"></i>
               </button>
               <button type="button" class="option" data-filter="hidePrivate">
                 <span class="option-icon"><i data-icon="lock"></i></span>
-                <span class="option-text"><strong>Private</strong><small>Accounts you can't preview</small></span>
+                <span class="option-text"><strong data-i18n="filter.private">Private</strong><small data-i18n="filter.privateSub">Accounts you can't preview</small></span>
                 <i data-icon="check" class="check"></i>
               </button>
             </div>
@@ -87,59 +87,65 @@
     <!-- Settings -->
     <div id="settings" class="screen" hidden>
       <header class="subbar">
-        <button type="button" class="icon-btn back" data-back="main" title="Back"><i data-icon="arrow-left"></i></button>
-        <h1>Settings</h1>
+        <button type="button" class="icon-btn back" data-back="main" title="Back" data-i18n-title="settings.back"><i data-icon="arrow-left"></i></button>
+        <h1 data-i18n="settings.title">Settings</h1>
       </header>
       <form id="settings-form" class="settings-body">
         <section class="group">
-          <div class="group-header">
-            <h3>Unfollow limits</h3>
-            <p>Soft limits. When you reach one, unfollowing asks before going on.</p>
-          </div>
+          <div class="group-header"><h3 data-i18n="settings.language">Language</h3></div>
           <div class="group-card">
-            <label class="field">Per hour <span class="input"><input name="hourlyLimit" type="number" min="1" /></span></label>
-            <label class="field">Per 24 hours <span class="input"><input name="dailyLimit" type="number" min="1" /></span></label>
+            <label class="field"><span data-i18n="settings.languageField">App language</span> <span class="input select"><select id="language" name="language"><option value="en">English</option><option value="es">Español</option></select><i data-icon="chevron-down"></i></span></label>
           </div>
         </section>
         <section class="group">
           <div class="group-header">
-            <h3>Sync pacing</h3>
-            <p>Slower is safer. Instagram may lock you out if you go too fast.</p>
+            <h3 data-i18n="settings.limits">Unfollow limits</h3>
+            <p data-i18n="settings.limitsSub">Soft limits. When you reach one, unfollowing asks before going on.</p>
           </div>
           <div class="group-card">
-            <label class="field">Min pause between pages <span class="input"><input name="minDelayMs" data-scale="1000" type="number" min="1" step="0.5" /><em>s</em></span></label>
-            <label class="field">Max pause between pages <span class="input"><input name="maxDelayMs" data-scale="1000" type="number" min="1" step="0.5" /><em>s</em></span></label>
-            <label class="field">Max accounts per run <span class="input"><input name="maxAccountsPerSync" type="number" min="50" /></span></label>
-            <label class="field">Wait between full syncs <span class="input"><input name="syncCooldownHours" type="number" min="0" /><em>h</em></span></label>
-            <label class="field">Lock after Instagram pushes back <span class="input"><input name="blockLockoutHours" type="number" min="1" /><em>h</em></span></label>
+            <label class="field"><span data-i18n="settings.perHour">Per hour</span> <span class="input"><input name="hourlyLimit" type="number" min="1" /></span></label>
+            <label class="field"><span data-i18n="settings.perDay">Per 24 hours</span> <span class="input"><input name="dailyLimit" type="number" min="1" /></span></label>
           </div>
         </section>
         <section class="group">
-          <div class="group-header"><h3>Debug</h3></div>
+          <div class="group-header">
+            <h3 data-i18n="settings.pacing">Sync pacing</h3>
+            <p data-i18n="settings.pacingSub">Slower is safer. Instagram may lock you out if you go too fast.</p>
+          </div>
+          <div class="group-card">
+            <label class="field"><span data-i18n="settings.minDelay">Min pause between pages</span> <span class="input"><input name="minDelayMs" data-scale="1000" type="number" min="1" step="0.5" /><em>s</em></span></label>
+            <label class="field"><span data-i18n="settings.maxDelay">Max pause between pages</span> <span class="input"><input name="maxDelayMs" data-scale="1000" type="number" min="1" step="0.5" /><em>s</em></span></label>
+            <label class="field"><span data-i18n="settings.maxAccounts">Max accounts per run</span> <span class="input"><input name="maxAccountsPerSync" type="number" min="50" /></span></label>
+            <label class="field"><span data-i18n="settings.cooldown">Wait between full syncs</span> <span class="input"><input name="syncCooldownHours" type="number" min="0" /><em>h</em></span></label>
+            <label class="field"><span data-i18n="settings.lockout">Lock after Instagram pushes back</span> <span class="input"><input name="blockLockoutHours" type="number" min="1" /><em>h</em></span></label>
+          </div>
+        </section>
+        <section class="group">
+          <div class="group-header"><h3 data-i18n="settings.debug">Debug</h3></div>
           <div class="group-card">
             <button type="button" id="open-console" class="link-row">
               <i data-icon="terminal"></i>
-              <span>Activity log</span>
+              <span data-i18n="settings.log">Activity log</span>
               <span id="log-count" class="link-count"></span>
               <i data-icon="chevron-right" class="chevron"></i>
             </button>
           </div>
         </section>
-        <button type="button" id="clear" class="btn danger wide"><i data-icon="trash-2"></i> Clear all data</button>
+        <button type="button" id="clear" class="btn danger wide"><i data-icon="trash-2"></i> <span data-i18n="settings.clear">Clear all data</span></button>
       </form>
     </div>
 
     <!-- Activity log -->
     <div id="console" class="screen" hidden>
       <header class="subbar">
-        <button type="button" class="icon-btn back" data-back="settings" title="Back"><i data-icon="arrow-left"></i></button>
-        <h1>Activity log</h1>
-        <button type="button" id="log-copy" class="icon-btn" title="Copy all"><i data-icon="copy"></i></button>
-        <button type="button" id="log-clear" class="icon-btn" title="Clear"><i data-icon="trash-2"></i></button>
+        <button type="button" class="icon-btn back" data-back="settings" title="Back" data-i18n-title="settings.back"><i data-icon="arrow-left"></i></button>
+        <h1 data-i18n="log.title">Activity log</h1>
+        <button type="button" id="log-copy" class="icon-btn" title="Copy all" data-i18n-title="log.copy"><i data-icon="copy"></i></button>
+        <button type="button" id="log-clear" class="icon-btn" title="Clear" data-i18n-title="log.clear"><i data-icon="trash-2"></i></button>
       </header>
       <ol id="log" class="log"></ol>
-      <p id="log-empty" class="empty" hidden>Nothing logged yet. Sync, unfollow, or unfollow someone on Instagram.</p>
-      <footer class="log-footer"><span id="log-status">Last 300 entries · tokens are redacted</span></footer>
+      <p id="log-empty" class="empty" data-i18n="log.empty" hidden>Nothing logged yet. Sync, unfollow, or unfollow someone on Instagram.</p>
+      <footer class="log-footer"><span id="log-status" data-i18n="log.status">Last 300 entries · tokens are redacted</span></footer>
     </div>
 
     <script type="module" src="./main.ts"></script>

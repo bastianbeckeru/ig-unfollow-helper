@@ -40,7 +40,10 @@ export type SyncJob = {
   message?: string;
 };
 
+export type Language = "en" | "es";
+
 export type Settings = {
+  language: Language;
   minDelayMs: number;
   maxDelayMs: number;
   maxAccountsPerSync: number;
@@ -53,6 +56,7 @@ export type Settings = {
 };
 
 export const DEFAULT_SETTINGS: Settings = {
+  language: "en",
   minDelayMs: 3000,
   maxDelayMs: 7000,
   maxAccountsPerSync: 10000,

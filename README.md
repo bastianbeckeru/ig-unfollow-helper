@@ -12,6 +12,7 @@ It never unfollows anyone on its own: every unfollow is one click of yours. Eith
 - **Unfollow detection**: spots the request Instagram sends when you press Unfollow, so it works in any interface language. The **unfollow** button next to each account unfollows it right away, one click per account, for the ones you recognize without opening the profile.
 - **Keyboard**: Tab or ↑/↓ to move from account to account, **K** to keep, **Delete**/**⌫** to unfollow, **U** to undo, **Enter** to open the profile, **/** to search.
 - **Activity log** (in Settings): every request the extension sends and every follow/unfollow request Instagram sends, with status and response, for debugging. Tokens are redacted; **Copy all** puts it on the clipboard.
+- **English and Spanish**: pick the language in **Settings**. English is the default.
 - **Soft limits**: 30 unfollows per rolling hour and 120 per rolling 24 h by default. When you reach one, the unfollow button asks before going on. If Instagram pushes back on an unfollow, both unfollows and syncs lock for 24 h.
 
 ## Guardrails

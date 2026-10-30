@@ -32,10 +32,11 @@ import {
   Users,
 } from "lucide";
 import { candidates, nonFollowerCount } from "@/lib/candidates";
+import { type Key, locale, setLanguage, t } from "@/lib/i18n";
 import type { UnfollowResult } from "@/lib/instagram";
 import { canSync, isStale, unfollowQuota } from "@/lib/pacing";
 import { clearAll, getAll, type State, set } from "@/lib/store";
-import type { Account, LogEntry, Settings } from "@/lib/types";
+import type { Account, Language, LogEntry, Settings } from "@/lib/types";
 import type { ContentRequest, SyncStartResponse } from "../instagram.content";
 
 type Screen = "main" | "settings" | "console";
@@ -117,11 +118,31 @@ function hydrateIcons() {
     [".btn", 14],
     [".option", 16],
     [".empty-icon", 20],
+    [".input", 14],
   ];
   document.querySelectorAll<HTMLElement>("i[data-icon]").forEach((i) => {
     const size = sizes.find(([sel]) => i.closest(sel))?.[1] ?? 15;
     i.replaceWith(icon(i.dataset.icon ?? "", size, i.className));
   });
+}
+
+/** Fills the `data-i18n*` markup with the current language. */
+function translateStatic() {
+  document.documentElement.lang = locale();
+  const attrs = ["title", "placeholder", "aria-label"];
+  document.querySelectorAll<HTMLElement>("[data-i18n]").forEach((node) => {
+    node.textContent = t(node.dataset.i18n as Key);
+  });
+  for (const attr of attrs) {
+    document
+      .querySelectorAll<HTMLElement>(`[data-i18n-${attr}]`)
+      .forEach((node) => {
+        node.setAttribute(
+          attr,
+          t(node.getAttribute(`data-i18n-${attr}`) as Key),
+        );
+      });
+  }
 }
 
 // ---------- Instagram tab ----------
@@ -155,9 +176,9 @@ async function send<T>(msg: ContentRequest): Promise<T | null> {
     showNotice({
       tone: "neutral",
       icon: "plug-zap",
-      title: "Open Instagram first",
-      sub: "Open instagram.com in this window, then try again.",
-      action: { label: "Open", run: openInstagram },
+      title: t("notice.openFirst"),
+      sub: t("notice.openFirstSub"),
+      action: { label: t("notice.open"), run: openInstagram },
     });
     return null;
   }
@@ -167,10 +188,10 @@ async function send<T>(msg: ContentRequest): Promise<T | null> {
     showNotice({
       tone: "neutral",
       icon: "plug-zap",
-      title: "Reload Instagram",
-      sub: "Reload the Instagram tab so the extension can connect to it.",
+      title: t("notice.reloadTitle"),
+      sub: t("notice.reloadSub"),
       action: {
-        label: "Reload",
+        label: t("notice.reload"),
         run: () => tab.id && browser.tabs.reload(tab.id),
       },
     });
@@ -188,9 +209,9 @@ function showNotice(n: Notice | null) {
 const loggedOutNotice = (): Notice => ({
   tone: "neutral",
   icon: "plug-zap",
-  title: "Log in to Instagram",
-  sub: "Log in on instagram.com in this window, then try again.",
-  action: { label: "Open", run: openInstagram },
+  title: t("notice.loggedOut"),
+  sub: t("notice.loggedOutSub"),
+  action: { label: t("notice.open"), run: openInstagram },
 });
 
 // ---------- Actions ----------
@@ -230,9 +251,9 @@ function cooldownNotice(until: number | null) {
     tone: "neutral",
     icon: "timer",
     title: state.snapshot
-      ? `Synced ${ago(state.snapshot.syncedAt)}`
-      : "Synced recently",
-    sub: `You can sync again ${time(until)}. Waiting between syncs keeps Instagram from flagging you.`,
+      ? t("notice.synced", { ago: ago(state.snapshot.syncedAt) })
+      : t("notice.syncedRecently"),
+    sub: t("notice.cooldownSub", { time: time(until) }),
   });
 }
 
@@ -247,9 +268,7 @@ async function quickUnfollow(a: Account) {
   const q = unfollowQuota(state.unfollowLog, Date.now(), state.settings);
   if (
     q.limited &&
-    !confirm(
-      `You reached your unfollow limit. Next slot ${time(q.nextSlotAt)}.\n\nUnfollow @${a.username} anyway?`,
-    )
+    !confirm(t("confirm.limit", { time: time(q.nextSlotAt), user: a.username }))
   ) {
     return;
   }
@@ -262,7 +281,7 @@ async function quickUnfollow(a: Account) {
     showNotice({
       tone: "danger",
       icon: "shield-alert",
-      title: `Couldn't unfollow @${a.username}`,
+      title: t("notice.unfollowFailed", { user: a.username }),
       sub: res.message,
     });
   } else render();
@@ -282,35 +301,38 @@ async function undoDone(id: string) {
 
 // ---------- Formatting ----------
 
-function clock(t: number): string {
-  const d = new Date(t);
-  const hm = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+function clock(at: number): string {
+  const d = new Date(at);
+  const hm = d.toLocaleTimeString(locale(), {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
   const days = Math.round(
     (new Date(d).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) /
       86_400_000,
   );
   if (days === 0) return hm;
-  if (days === 1) return `tomorrow ${hm}`;
-  return `${d.toLocaleDateString([], { month: "short", day: "numeric" })} ${hm}`;
+  if (days === 1) return t("time.tomorrow", { time: hm });
+  return `${d.toLocaleDateString(locale(), { month: "short", day: "numeric" })} ${hm}`;
 }
 
-function time(t: number | null): string {
-  if (!t) return "";
-  const mins = Math.round((t - Date.now()) / 60_000);
-  if (mins <= 0) return "now";
-  if (mins < 60) return `in ${mins} min`;
-  return `in ${Math.round(mins / 60)} h (${clock(t)})`;
+function time(at: number | null): string {
+  if (!at) return "";
+  const mins = Math.round((at - Date.now()) / 60_000);
+  if (mins <= 0) return t("time.now");
+  if (mins < 60) return t("time.inMin", { count: mins });
+  return t("time.inHours", { count: Math.round(mins / 60), clock: clock(at) });
 }
 
-function ago(t: number): string {
-  const mins = Math.round((Date.now() - t) / 60_000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins} min ago`;
-  if (mins < 48 * 60) return `${Math.round(mins / 60)} h ago`;
-  return `${Math.round(mins / 1440)} days ago`;
+function ago(at: number): string {
+  const mins = Math.round((Date.now() - at) / 60_000);
+  if (mins < 1) return t("ago.justNow");
+  if (mins < 60) return t("ago.min", { count: mins });
+  if (mins < 48 * 60) return t("ago.hours", { count: Math.round(mins / 60) });
+  return t("ago.days", { count: Math.round(mins / 1440) });
 }
 
-const num = (n: number) => n.toLocaleString("en-US");
+const num = (n: number) => n.toLocaleString(locale());
 
 // ---------- DOM helpers ----------
 
@@ -360,12 +382,21 @@ function render() {
   const sync = $<HTMLButtonElement>("sync");
   sync.classList.toggle("active", running);
   sync.querySelector("svg")?.classList.toggle("spin", running);
-  sync.title = running ? "Syncing…" : state.syncJob ? "Resume sync" : "Sync";
+  sync.title = t(
+    running
+      ? "header.syncing"
+      : state.syncJob
+        ? "header.resume"
+        : "header.sync",
+  );
   $("hero").hidden = !snapshot;
   if (snapshot) {
     $("big-number").textContent = num(nonFollowerCount(snapshot));
-    $("sub-stats").textContent =
-      `${num(snapshot.followerIds.length)} followers · ${num(snapshot.following.length)} following · synced ${ago(snapshot.syncedAt)}`;
+    $("sub-stats").textContent = t("hero.stats", {
+      followers: num(snapshot.followerIds.length),
+      following: num(snapshot.following.length),
+      ago: ago(snapshot.syncedAt),
+    });
   }
 
   renderBanner(now, running);
@@ -392,24 +423,24 @@ function renderBanner(now: number, running: boolean) {
     card = banner({
       tone: "danger",
       icon: "shield-alert",
-      title: "Instagram pushed back",
-      sub: `Syncs and unfollows are locked until ${clock(state.lockUntil)}. Your progress is saved.`,
+      title: t("banner.locked"),
+      sub: t("banner.lockedSub", { time: clock(state.lockUntil) }),
     });
   } else if (job) {
-    const why: Record<string, string> = {
-      stopped: "You stopped it",
-      cap: "Reached the per-run account cap",
-      blocked: "Instagram pushed back",
-      logged_out: "Logged out of Instagram",
-      error: `Request failed${job.message ? ` (${job.message})` : ""}`,
-      interrupted: "The Instagram tab reloaded or closed",
-    };
+    const reason = job.stopReason ?? "interrupted";
+    const why =
+      t(`why.${reason}`) +
+      (reason === "error" && job.message ? ` (${job.message})` : "");
     card = banner({
       tone: "neutral",
       icon: "circle-pause",
-      title: "Sync paused",
-      sub: `${why[job.stopReason ?? "interrupted"]}. ${num(job.following.length)} following, ${num(job.followerIds.length)} followers fetched so far.`,
-      action: { label: "Resume", run: startSync },
+      title: t("banner.paused"),
+      sub: t("banner.pausedSub", {
+        why,
+        following: num(job.following.length),
+        followers: num(job.followerIds.length),
+      }),
+      action: { label: t("banner.resume"), run: startSync },
     });
     card.querySelector(".btn")?.classList.add("primary");
   } else if (notice) {
@@ -439,16 +470,24 @@ function syncCard(job: NonNullable<State["syncJob"]>): HTMLElement {
   const card = banner({
     tone: "neutral",
     icon: "loader-circle",
-    title: job.stopRequested
-      ? "Stopping…"
-      : following
-        ? "Syncing following…"
-        : "Syncing followers…",
+    title: t(
+      job.stopRequested
+        ? "banner.stopping"
+        : following
+          ? "banner.syncingFollowing"
+          : "banner.syncingFollowers",
+    ),
     sub: "",
-    action: job.stopRequested ? undefined : { label: "Stop", run: stopSync },
+    action: job.stopRequested
+      ? undefined
+      : { label: t("banner.stop"), run: stopSync },
   });
   card.classList.add("running");
-  card.title = `Step ${following ? 1 : 2} of 2 · ${num(job.following.length)} following, ${num(job.followerIds.length)} followers fetched`;
+  card.title = t("banner.step", {
+    step: following ? 1 : 2,
+    following: num(job.following.length),
+    followers: num(job.followerIds.length),
+  });
   card.querySelector(".banner-top > svg")?.classList.add("spin");
   card.querySelector(".btn")?.prepend(icon("square", 11));
 
@@ -518,12 +557,7 @@ function renderList(now: number) {
   });
 
   // Toolbar
-  const placeholder: Record<Tab, string> = {
-    review: "Search username",
-    kept: "Search kept accounts",
-    done: "Search unfollowed accounts",
-  };
-  $<HTMLInputElement>("search").placeholder = placeholder[tab];
+  $<HTMLInputElement>("search").placeholder = t(`search.${tab}`);
   $("filter-wrap").hidden = tab !== "review";
   if (tab !== "review") $("filter-menu").hidden = true;
   $("filter").classList.toggle("active", !$("filter-menu").hidden);
@@ -533,13 +567,9 @@ function renderList(now: number) {
       !settings[o.dataset.filter as "hideVerified" | "hidePrivate"],
     );
   });
-  const captions: Record<Tab, string> = {
-    review: "",
-    kept: "Kept accounts never show up for review. Remove one to review it again.",
-    done: "Unfollows you make here or on Instagram. Undo puts an account back in review; it doesn't follow again.",
-  };
-  $("caption").textContent = captions[tab];
-  $("caption").hidden = !captions[tab];
+  const caption = tab === "review" ? "" : t(`caption.${tab}`);
+  $("caption").textContent = caption;
+  $("caption").hidden = !caption;
 
   // Rows
   const locked = state.lockUntil > now;
@@ -554,16 +584,16 @@ function renderList(now: number) {
       className: pending.has(a.id) ? "pending" : "",
       actions: [
         btn(
-          "Keep",
+          t("action.keep"),
           "bookmark",
           () => toggleKeep(a),
           "btn",
-          "Never suggest this account (K)",
+          t("action.keepTitle"),
         ),
         unfollowButton(a, locked),
       ],
     }));
-    empty = query ? "No matches." : "Nobody left to review.";
+    empty = t(query ? "empty.noMatches" : "empty.review");
   } else if (tab === "kept") {
     rows = kept
       .map(
@@ -576,18 +606,16 @@ function renderList(now: number) {
         sub: a.fullName ?? "",
         actions: [
           btn(
-            "Remove",
+            t("action.remove"),
             "bookmark-x",
             () => toggleKeep(a),
             "btn",
-            "Review this account again (K)",
+            t("action.removeTitle"),
           ),
         ],
       }));
     total = rows.length;
-    empty = query
-      ? "No matches."
-      : "Accounts you keep show up here. They never show up for review.";
+    empty = t(query ? "empty.noMatches" : "empty.kept");
   } else {
     rows = done
       .map(([id, d]) => ({
@@ -599,22 +627,20 @@ function renderList(now: number) {
       .filter(({ a }) => matches(a.username, a.fullName))
       .map(({ a, d }) => ({
         account: a,
-        sub: `Unfollowed ${ago(d.at)}`,
+        sub: t("row.unfollowed", { ago: ago(d.at) }),
         className: "done",
         actions: [
           btn(
-            "Undo",
+            t("action.undo"),
             "undo-2",
             () => undoDone(a.id),
             "btn",
-            "Put back in review; does not follow again (U)",
+            t("action.undoTitle"),
           ),
         ],
       }));
     total = rows.length;
-    empty = query
-      ? "No matches."
-      : "Unfollows you make here or on Instagram show up here.";
+    empty = t(query ? "empty.noMatches" : "empty.done");
   }
 
   // Keep the selection on the same account, or on the row that took its place.
@@ -640,7 +666,7 @@ function renderList(now: number) {
   $("empty").hidden = rows.length > 0 && hidden === 0;
   $("empty").textContent =
     hidden > 0
-      ? `Showing ${num(rows.length)} of ${num(total)}. Search to narrow down.`
+      ? t("empty.truncated", { shown: num(rows.length), total: num(total) })
       : empty;
 }
 
@@ -651,7 +677,7 @@ function unfollowButton(a: Account, locked: boolean): HTMLButtonElement {
     null,
     () => quickUnfollow(a),
     "unfollow",
-    `Unfollow @${a.username} now (⌫)`,
+    t("action.unfollowTitle", { user: a.username }),
   );
   b.append(icon(busy ? "loader-circle" : "user-minus", 15, busy ? "spin" : ""));
   b.disabled = busy || locked;
@@ -665,7 +691,7 @@ function rowEl(r: Row): HTMLLIElement {
     href: "#",
     className: "username",
     textContent: a.username,
-    title: `Open @${a.username} on Instagram`,
+    title: t("row.open", { user: a.username }),
     tabIndex: -1,
   });
   link.onclick = (e) => {
@@ -784,20 +810,24 @@ function renderActionBar(now: number) {
   $("ring").style.setProperty("--p", `${ratio * 100}%`);
   $("rate").classList.toggle("limited", q.limited);
   $("rate-text").textContent = q.limited
-    ? `Limit reached · ${time(q.nextSlotAt)}`
+    ? t("rate.limited", { time: time(q.nextSlotAt) })
     : dayRatio > hourRatio
-      ? `${q.lastDay}/${settings.dailyLimit} today`
-      : `${q.lastHour}/${settings.hourlyLimit} this hour`;
-  $("rate").title =
-    `${q.lastHour}/${settings.hourlyLimit} unfollows in the last hour · ${q.lastDay}/${settings.dailyLimit} in 24 h`;
+      ? t("rate.today", { count: q.lastDay, limit: settings.dailyLimit })
+      : t("rate.hour", { count: q.lastHour, limit: settings.hourlyLimit });
+  $("rate").title = t("rate.title", {
+    hour: q.lastHour,
+    hourLimit: settings.hourlyLimit,
+    day: q.lastDay,
+    dayLimit: settings.dailyLimit,
+  });
 
   const hints: Record<Tab, [string, string][]> = {
     review: [
-      ["Keep", "K"],
-      ["Unfollow", "⌫"],
+      [t("action.keep"), "K"],
+      [t("action.unfollow"), "⌫"],
     ],
-    kept: [["Remove", "K"]],
-    done: [["Undo", "U"]],
+    kept: [[t("action.remove"), "K"]],
+    done: [[t("action.undo"), "U"]],
   };
   (["hint-primary", "hint-secondary"] as const).forEach((id, i) => {
     const h = hints[tab][i];
@@ -950,15 +980,8 @@ async function copyLog() {
     .map((e) => (e.detail ? `${formatEntry(e)}\n${e.detail}` : formatEntry(e)))
     .join("\n\n");
   await navigator.clipboard.writeText(text);
-  flash("log-status", "Copied to the clipboard.");
-}
-
-function flash(id: string, text: string) {
-  const node = $(id);
-  const before = node.dataset.default ?? node.textContent ?? "";
-  node.dataset.default = before;
-  node.textContent = text;
-  setTimeout(() => (node.textContent = before), 2000);
+  $("log-status").textContent = t("log.copied");
+  setTimeout(() => ($("log-status").textContent = t("log.status")), 2000);
 }
 
 // ---------- Settings ----------
@@ -968,6 +991,7 @@ const inputs = () => [
 ];
 
 function fillSettings() {
+  $<HTMLSelectElement>("language").value = state.settings.language;
   for (const input of inputs()) {
     const scale = Number(input.dataset.scale ?? 1);
     input.value = String(
@@ -1007,6 +1031,7 @@ function go(next: Screen) {
 async function refresh() {
   const before = state;
   state = await getAll();
+  if (setLanguage(state.settings.language)) translateStatic();
   // A sync that was running is gone and a newer snapshot is in: it finished.
   if (
     before?.syncJob?.status === "running" &&
@@ -1018,8 +1043,15 @@ async function refresh() {
     return showNotice({
       tone: "neutral",
       icon: "circle-check",
-      title: "Sync complete",
-      sub: `Found ${num(n)} account${n === 1 ? "" : "s"} that don't follow you back. Next sync ${time(state.snapshot.syncedAt + state.settings.syncCooldownHours * 3_600_000) || "available now"}.`,
+      title: t("notice.syncDone"),
+      sub: t(n === 1 ? "notice.syncDoneOne" : "notice.syncDoneMany", {
+        count: num(n),
+        time:
+          time(
+            state.snapshot.syncedAt +
+              state.settings.syncCooldownHours * 3_600_000,
+          ) || t("notice.syncAvailable"),
+      }),
     });
   }
   render();
@@ -1082,18 +1114,18 @@ async function init() {
     (document.activeElement as HTMLElement | null)?.blur();
   };
   $<HTMLFormElement>("settings-form").onchange = (e) => {
-    if ((e.target as HTMLElement).matches("input"))
-      saveSetting(e.target as HTMLInputElement);
+    const target = e.target as HTMLElement;
+    if (target instanceof HTMLSelectElement)
+      set("settings", {
+        ...state.settings,
+        language: target.value as Language,
+      });
+    else if (target.matches("input")) saveSetting(target as HTMLInputElement);
   };
   $("log-copy").onclick = copyLog;
   $("log-clear").onclick = () => set("log", []);
   $("clear").onclick = async () => {
-    if (
-      !confirm(
-        "Delete the synced lists, keep list, unfollow history and settings?",
-      )
-    )
-      return;
+    if (!confirm(t("confirm.clear"))) return;
     await clearAll();
     await refresh();
     go("main");
